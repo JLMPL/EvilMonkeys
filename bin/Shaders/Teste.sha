@@ -1,0 +1,32 @@
+#shader vertex
+#version 130
+
+in vec3 vertexPos;
+
+out vec3 fragmentCoord;
+
+uniform mat4 projection;
+uniform mat4 view;
+uniform mat4 model;
+
+void main()
+{
+    vec4 worldPos = model * vec4(vertexPos, 1);
+    gl_Position = projection * view * worldPos;
+
+    fragmentCoord = vertexPos;
+}
+
+#shader fragment
+#version 130
+
+in vec3 fragmentCoord;
+
+out vec4 outColor;
+
+uniform samplerCube image;
+
+void main()
+{
+    outColor = textureCubeLod(image, fragmentCoord, 4);
+}

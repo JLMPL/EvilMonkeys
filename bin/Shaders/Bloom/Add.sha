@@ -1,0 +1,32 @@
+#shader vertex
+#version 130
+
+in vec2 vertexPos;
+in vec2 vertexCoord;
+
+out vec2 fragmentCoord;
+
+void main()
+{
+    gl_Position = vec4(vertexPos, 0, 1);
+    fragmentCoord = vertexCoord;
+}
+
+#shader fragment
+#version 130
+
+in vec2 fragmentCoord;
+
+out vec4 outColor;
+
+uniform sampler2D image;
+uniform sampler2D luma;
+
+void main()
+{
+    vec4 texColor = texture(image, fragmentCoord);
+    vec4 lumColor = texture(luma, fragmentCoord);
+
+    outColor = texColor + lumColor;
+}
+

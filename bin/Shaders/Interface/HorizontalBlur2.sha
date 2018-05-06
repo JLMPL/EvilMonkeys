@@ -1,0 +1,48 @@
+#shader vertex
+#version 130
+
+#define KERNEL_SIZE 5
+
+in vec2 vertexPos;
+in vec2 vertexCoord;
+
+out vec2 fragmentCoords[KERNEL_SIZE];
+
+uniform int textureWidth;
+
+void main()
+{
+    gl_Position = vec4(vertexPos, 0, 1);
+
+    float texel = 1.f / float(textureWidth);
+
+    for (int i = -2; i <= 2; i++)
+    {
+        fragmentCoords[i+2] = vertexCoord + vec2(texel * i, 0.f);
+    }
+}
+
+#shader fragment
+#version 130
+
+#define KERNEL_SIZE 5
+
+in vec2 fragmentCoords[KERNEL_SIZE];
+
+out vec4 outColor;
+
+uniform sampler2D image;
+uniform float kernel[KERNEL_SIZE];
+
+void main()
+{
+    vec4 color = vec4(0.f);
+
+    for (int i = 0; i < KERNEL_SIZE; i++)
+    {
+        color += texture(image, fragmentCoords[i]) * kernel[i];
+    }
+
+    outColor = color;
+}
+

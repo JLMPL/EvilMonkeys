@@ -1,0 +1,39 @@
+#shader vertex
+#version 130
+
+in vec2 vertexPos;
+in vec2 vertexCoord;
+
+out vec2 fragmentCoord;
+
+void main()
+{
+    gl_Position = vec4(vertexPos, 0, 1);
+    fragmentCoord = vertexCoord;
+}
+
+#shader fragment
+#version 130
+
+in vec2 fragmentCoord;
+
+out vec4 outColor;
+
+uniform sampler2D uAmbient;
+uniform sampler2D uSun;
+uniform sampler2D uSsao;
+
+void main()
+{
+    vec3 ambient = texture(uAmbient, fragmentCoord).rgb;
+    vec3 sun = texture(uSun, fragmentCoord).rgb;
+    vec3 color = ambient + sun;
+
+    color *= texture(uSsao, fragmentCoord).r;
+
+    float exposure = 1;
+    color = vec3(1.0) - exp(-color * exposure);
+    color = pow(color, vec3(1.0/2.2));
+
+    outColor = vec4(color, 1.0);
+}

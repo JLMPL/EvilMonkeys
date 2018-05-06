@@ -1,0 +1,64 @@
+#shader vertex
+#version 130
+
+in vec3 vertexPos;
+in vec3 vertexNormal;
+in vec4 vertexColor;
+in vec2 vertexCoord;
+
+out vec3 fragmentPos;
+out vec2 fragmentCoord;
+out vec4 fragmentColor;
+
+uniform mat4 projection;
+uniform mat4 view;
+uniform mat4 model;
+
+uniform vec3 sunDirection;
+uniform vec3 sunColor;
+uniform vec3 ambientColor;
+
+uniform float time;
+
+uniform vec4 clipPlane;
+
+//FIXME make this randomass vector into wind
+
+void main()
+{
+    vec3 wind = normalize(vec3(-1,0,-1)) * sin(time) * 5.f;
+    vec3 newVertexPos = vec3(model * vec4(vertexPos, 1)) + (wind * vertexColor.x);
+
+    gl_ClipDistance[0] = dot(vec4(newVertexPos, 1.f), clipPlane);
+
+    gl_Position = projection * view * vec4(newVertexPos, 1);
+    fragmentPos = newVertexPos;
+
+    vec3 fragmentNormal = vec3(model * vec4(vertexNormal, 0));
+    vec3 light = sunColor * dot(fragmentNormal, -sunDirection);
+    light = max(ambientColor, light);
+
+    fragmentColor = vec4(light, 1.f);
+    fragmentCoord = vertexCoord;
+}
+
+#shader fragment
+#version 130
+
+in vec3 fragmentPos;
+in vec2 fragmentCoord;
+in vec4 fragmentColor;
+
+out vec4 outColor;
+
+uniform sampler2D image;
+
+void main()
+{
+    vec4 texColor = texture(image, fragmentCoord);
+
+    if (texColor.a < 0.5f)
+        discard;
+
+    outColor = vec4(texColor.xyz * fragmentColor.xyz, 1.f);
+}

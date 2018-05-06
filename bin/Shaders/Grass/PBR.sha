@@ -1,0 +1,67 @@
+#shader vertex
+#version 130
+
+in vec3 vertexPos;
+in vec3 vertexNormal;
+in vec4 vertexColor;
+in vec2 vertexCoord;
+
+out vec3 fragmentPos;
+out vec3 fragmentNormal;
+out vec2 fragmentCoord;
+out vec4 fragmentColor;
+
+uniform mat4 projection;
+uniform mat4 view;
+uniform mat4 model;
+
+uniform float time;
+
+//FIXME make this randomass vector into wind
+
+void main()
+{
+    vec3 wind = normalize(vec3(-1,0,-1)) * sin(time) * 2.f;
+    wind *= vertexColor.x;
+
+    vec3 worldPos = vec3(model * vec4(vertexPos, 1)) + wind;
+
+    gl_Position = projection * view * vec4(worldPos, 1);
+
+    fragmentPos = worldPos;
+    fragmentNormal = vertexNormal;
+    fragmentCoord = vertexCoord;
+    fragmentColor = vec4(1);
+}
+
+#shader fragment
+#version 130
+
+in vec3 fragmentPos;
+in vec3 fragmentNormal;
+in vec2 fragmentCoord;
+in vec4 fragmentColor;
+
+out vec4 outAlbedo;
+out vec2 outMaterials;
+out vec3 outNormals;
+
+uniform sampler2D inAlbedo;
+uniform sampler2D inMetallic;
+uniform sampler2D inRoughness;
+uniform sampler2D inAo;
+
+void main()
+{
+    vec4 cl = texture(inAlbedo, fragmentCoord).rgba;
+
+    if (cl.a < 0.5) discard;
+
+    float metal = texture(inMetallic, fragmentCoord).r;
+    float rough = texture(inRoughness, fragmentCoord).r;
+    float ao = texture(inAo, fragmentCoord).r;
+
+    outAlbedo = vec4(cl.rgb, ao);
+    outMaterials = vec2(metal, rough);
+    outNormals = (fragmentNormal + 1) * 0.5f;
+}

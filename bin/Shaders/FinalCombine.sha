@@ -1,0 +1,44 @@
+#shader vertex
+#version 130
+
+in vec2 vertexPos;
+in vec2 vertexCoord;
+
+out vec2 fragmentCoord;
+
+void main()
+{
+    gl_Position = vec4(vertexPos, 0, 1);
+    fragmentCoord = vertexCoord;
+}
+
+#shader fragment
+#version 130
+
+in vec2 fragmentCoord;
+
+out vec4 outColor;
+
+uniform sampler2D deferredImage;
+uniform sampler2D forwardImage;
+uniform sampler2D deferredDepth;
+uniform sampler2D forwardDepth;
+
+void main()
+{
+    vec4 deferredColor = texture(deferredImage, fragmentCoord);
+    vec4 forwardColor = texture(forwardImage, fragmentCoord);
+
+    float defDepth = texture(deferredDepth, fragmentCoord).r;
+    float forDepth = texture(forwardDepth, fragmentCoord).r;
+
+    float far = 2000.f;
+    float near = 0.1f;
+
+    defDepth = 2.0 * near * far / (far + near - (2.0 * defDepth - 1.0) * (far - near));
+    forDepth = 2.0 * near * far / (far + near - (2.0 * forDepth - 1.0) * (far - near));
+
+    float test = (forDepth < defDepth) ? 0.0 : 1.0;
+
+    outColor = mix(deferredColor, forwardColor, test);
+}

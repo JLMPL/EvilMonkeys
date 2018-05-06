@@ -1,0 +1,52 @@
+#shader vertex
+#version 130
+
+in vec3 vertexPos;
+in vec3 vertexNormal;
+in vec4 vertexColor;
+in vec2 vertexCoord;
+
+out vec2 fragmentCoord;
+
+uniform mat4 projection;
+uniform mat4 view;
+uniform mat4 model;
+
+uniform float time;
+
+void main()
+{
+    vec3 wind = normalize(vec3(-1,0,-1)) * sin(time) * 5.f;
+    vec3 newVertexPos = vec3(model * vec4(vertexPos, 1)) + (wind * vertexColor.x);
+
+    gl_Position = projection * view * vec4(newVertexPos, 1);
+
+    fragmentCoord = vertexCoord;
+}
+
+#shader fragment
+#version 130
+
+in vec2 fragmentCoord;
+
+uniform sampler2D image;
+
+out float outDepth;
+
+void main()
+{
+    vec4 texColor = texture(image, fragmentCoord, 4);
+
+    if (texColor.a < 0.5)
+        discard;
+
+    outDepth = gl_FragCoord.z;
+}
+
+/*
+0 2048
+1 1024
+2 512
+3 256
+4 128
+*/

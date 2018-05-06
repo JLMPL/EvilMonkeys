@@ -1,0 +1,108 @@
+#shader vertex
+#version 130
+
+in vec2 vertexPos;
+in vec2 vertexCoord;
+
+out vec2 fragmentCoord;
+
+void main()
+{
+    gl_Position = vec4(vertexPos, 0, 1);
+    fragmentCoord = vertexCoord;
+}
+
+#shader fragment
+#version 130
+
+in vec2 fragmentCoord;
+
+out vec4 outColor;
+
+uniform sampler2D inDepth;
+uniform sampler2D inAlbedo;
+uniform sampler2D inMaterials;
+uniform sampler2D inNormals;
+
+uniform samplerCube inIrradiance;
+uniform samplerCube inPrefilterMap;
+uniform sampler2D brdfLUT;
+
+uniform vec3 camPos;
+
+uniform mat4 invProj;
+uniform mat4 invView;
+
+const float PI = 3.14159265359;
+
+vec3 fresnelSchlickRoughness(float cosTheta, vec3 F0, float roughness)
+{
+    return F0 + (max(vec3(1.0 - roughness), F0) - F0) * pow(1.0 - cosTheta, 5.0);
+}
+
+vec3 worldPosFromDepth(float depth)
+{
+    float z = depth * 2.0 - 1.0;
+
+    vec4 clipSpacePosition = vec4(fragmentCoord * 2.0 - 1.0, z, 1);
+    vec4 viewSpacePosition = invProj * clipSpacePosition;
+
+    viewSpacePosition /= viewSpacePosition.w;
+
+    vec4 worldSpacePosition = invView * viewSpacePosition;
+
+    return worldSpacePosition.xyz;
+}
+
+void main()
+{
+    vec3 worldPos = worldPosFromDepth(texture(inDepth, fragmentCoord).r);
+
+    vec4 texColor = texture(inAlbedo, fragmentCoord);
+    vec3 albedo = pow(texColor.xyz, vec3(2.2));
+    float ao = texColor.a;
+
+    vec2 mats = texture(inMaterials, fragmentCoord).rg;
+    float metallic  = mats.x;
+    float roughness = clamp(mats.y, 0.05, 1.0);
+
+    if (albedo == vec3(0) && mats == vec2(0))
+        discard;
+
+    vec3 normal = texture(inNormals, fragmentCoord).rgb;
+    normal = (normal * 2) - 1;
+
+    vec3 toCam = normalize(camPos - worldPos);
+    vec3 reflected = reflect(-toCam, normal);
+
+    vec3 N = normal;
+    vec3 V = toCam;
+    vec3 R = reflected;
+
+    vec3 F0 = vec3(0.04);
+    F0 = mix(F0, albedo, metallic);
+
+    vec3 F = fresnelSchlickRoughness(max(dot(N, V), 0.0), F0, roughness);
+
+    vec3 kS = F;
+    vec3 kD = 1.0 - kS;
+    kD *= 1.0 - metallic;
+
+    vec3 irradiance = textureCubeLod(inIrradiance, N, 0).rgb;
+    vec3 diffuse = irradiance * albedo;
+
+    const float MAX_REFLECTION_LOD = 4.0;
+    vec3 prefilteredColor = textureLod(inPrefilterMap, R,  roughness * MAX_REFLECTION_LOD).rgb;
+    vec2 brdf  = texture(brdfLUT, vec2(max(dot(N, V), 0.0), roughness)).rg;
+    vec3 specular = prefilteredColor * (F * brdf.x + brdf.y);
+
+    vec3 ambient = (kD * diffuse + specular) * ao;
+
+    vec3 color = ambient;
+
+    // float exposure = 1;
+    // color = vec3(1.0) - exp(-color * exposure);
+    // color = pow(color, vec3(1.0/2.2));
+
+    outColor = vec4(color , 1.0);
+}

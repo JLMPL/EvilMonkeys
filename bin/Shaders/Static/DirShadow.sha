@@ -1,0 +1,27 @@
+#shader vertex
+#version 130
+
+in vec3 vertexPos;
+in vec3 vertexNormal;
+in vec4 vertexColor;
+in vec2 vertexCoord;
+
+uniform mat4 projection;
+uniform mat4 view;
+uniform mat4 model;
+
+void main()
+{
+    gl_Position = projection * view * model * vec4(vertexPos, 1);
+}
+
+#shader fragment
+#version 130
+
+out float outDepth;
+
+void main()
+{
+    outDepth = gl_FragCoord.z;
+}
+

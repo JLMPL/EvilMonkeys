@@ -1,0 +1,84 @@
+#shader vertex
+#version 130
+
+in vec3 vertexPos;
+in vec3 vertexNormal;
+in vec4 vertexColor;
+in vec2 vertexCoord;
+in vec3 vertexTangent;
+in vec3 vertexBiTangent;
+
+out vec3 fragmentPos;
+out vec2 fragmentCoord;
+out vec4 fragmentColor;
+out mat3 toTan;
+
+uniform mat4 projection;
+uniform mat4 view;
+uniform mat4 model;
+
+uniform float time;
+
+//FIXME make this randomass vector into wind
+
+void main()
+{
+    vec3 wind = normalize(vec3(-1,0,-1)) * sin(time) * 2.f;
+    wind *= vertexColor.x;
+
+    vec3 worldPos = vec3(model * vec4(vertexPos, 1)) + wind;
+
+    gl_Position = projection * view * vec4(worldPos, 1);
+
+    fragmentPos = worldPos;
+    fragmentCoord = vertexCoord;
+    fragmentColor = vec4(1);
+
+    mat3 correct = mat3(model);
+    vec3 worldNormal = correct * vertexNormal;
+    vec3 worldTangent = correct * vertexTangent;
+    vec3 worldBiTangent = correct * vertexBiTangent;
+
+    toTan = transpose(mat3(
+        worldTangent.x, worldBiTangent.x, worldNormal.x,
+        worldTangent.y, worldBiTangent.y, worldNormal.y,
+        worldTangent.z, worldBiTangent.z, worldNormal.z
+    ));
+}
+
+#shader fragment
+#version 130
+
+in vec3 fragmentPos;
+in vec2 fragmentCoord;
+in vec4 fragmentColor;
+in mat3 toTan;
+
+out vec4 outAlbedo;
+out vec2 outMaterials;
+out vec3 outNormals;
+
+uniform sampler2D inAlbedo;
+uniform sampler2D inMetallic;
+uniform sampler2D inRoughness;
+uniform sampler2D inAo;
+uniform sampler2D inNormal;
+
+void main()
+{
+    vec3 color = texture(inAlbedo, fragmentCoord).rgb;
+    float metal = texture(inMetallic, fragmentCoord).r;
+    float rough = texture(inRoughness, fragmentCoord).r;
+    float ao = texture(inAo, fragmentCoord).r;
+
+    outAlbedo = vec4(color, ao);
+    outMaterials = vec2(metal, rough);
+
+    vec3 norm = texture(inNormal, fragmentCoord).rgb;
+    norm = (norm * 2) - 1;
+    norm = normalize(norm);
+
+    norm = normalize(toTan * norm);
+
+    outNormals = (norm + 1) * 0.5f;
+}

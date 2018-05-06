@@ -1,0 +1,50 @@
+#shader vertex
+#version 130
+
+in vec3 vertexPos;
+in vec3 vertexNormal;
+in vec4 vertexColor;
+in vec2 vertexCoord;
+in ivec4 boneIndices;
+in vec4 weights;
+
+out vec3 fragmentNormal;
+out vec4 fragmentColor;
+out vec2 fragmentCoord;
+
+uniform mat4 projection;
+uniform mat4 view;
+uniform mat4 model;
+
+const int NUM_BONES = 64;
+
+uniform mat4 bones[NUM_BONES];
+
+void main()
+{
+    mat4 boneTransform = bones[boneIndices[0]] * weights[0];
+    boneTransform += bones[boneIndices[1]] * weights[1];
+    boneTransform += bones[boneIndices[2]] * weights[2];
+    boneTransform += bones[boneIndices[3]] * weights[3];
+
+    gl_Position = projection * view * model * boneTransform * vec4(vertexPos, 1);
+
+    fragmentNormal = vec3(model * vec4(vertexNormal, 0));
+    fragmentColor = vertexColor;
+    fragmentCoord = vertexCoord;
+}
+
+#shader fragment
+#version 130
+
+in vec3 fragmentNormal;
+in vec4 fragmentColor;
+in vec2 fragmentCoord;
+
+out float outDepth;
+
+void main()
+{
+    outDepth = gl_FragCoord.z;
+}
+

@@ -1,0 +1,89 @@
+#shader vertex
+#version 130
+
+in vec3 vertexPos;
+in vec3 vertexNormal;
+in vec4 vertexColor;
+in vec2 vertexCoord;
+in ivec4 boneIndices;
+in vec4 weights;
+in vec3 vertexTangent;
+in vec3 vertexBiTangent;
+
+out vec3 fragmentPos;
+out vec4 fragmentColor;
+out vec2 fragmentCoord;
+out mat3 toTan;
+
+uniform mat4 projection;
+uniform mat4 view;
+uniform mat4 model;
+
+#define NUM_BONES 64
+uniform mat4 bones[NUM_BONES];
+
+void main()
+{
+    mat4 boneTransform = bones[boneIndices[0]] * weights[0];
+    boneTransform += bones[boneIndices[1]] * weights[1];
+    boneTransform += bones[boneIndices[2]] * weights[2];
+    boneTransform += bones[boneIndices[3]] * weights[3];
+
+    mat4 boneModel = model * boneTransform;
+    vec4 worldPos = boneModel * vec4(vertexPos, 1);
+
+    gl_Position = projection * view * worldPos;
+
+    fragmentPos = worldPos.xyz;
+    fragmentColor = vertexColor;
+    fragmentCoord = vertexCoord;
+
+    mat3 correct = mat3(boneModel);
+    vec3 worldNormal = correct * vertexNormal;
+    vec3 worldTangent = correct * vertexTangent;
+    vec3 worldBiTangent = correct * vertexBiTangent;
+
+    toTan = transpose(mat3(
+        worldTangent.x, worldBiTangent.x, worldNormal.x,
+        worldTangent.y, worldBiTangent.y, worldNormal.y,
+        worldTangent.z, worldBiTangent.z, worldNormal.z
+    ));
+}
+
+#shader fragment
+#version 130
+
+in vec3 fragmentPos;
+in vec4 fragmentColor;
+in vec2 fragmentCoord;
+in mat3 toTan;
+
+out vec4 outAlbedo;
+out vec2 outMaterials;
+out vec3 outNormals;
+
+uniform sampler2D inAlbedo;
+uniform sampler2D inMetallic;
+uniform sampler2D inRoughness;
+uniform sampler2D inAo;
+uniform sampler2D inNormal;
+
+void main()
+{
+    vec3 color = texture(inAlbedo, fragmentCoord).rgb;
+    float metal = texture(inMetallic, fragmentCoord).r;
+    float rough = texture(inRoughness, fragmentCoord).r;
+    float ao = texture(inAo, fragmentCoord).r;
+
+    outAlbedo = vec4(color * fragmentColor.rgb, ao);
+    outMaterials = vec2(metal, rough);
+
+    vec3 norm = texture(inNormal, fragmentCoord).rgb;
+    norm = (norm * 2) - 1;
+    norm = normalize(norm);
+
+    norm = normalize(toTan * norm);
+
+    outNormals = (norm + 1) * 0.5f;
+}
+

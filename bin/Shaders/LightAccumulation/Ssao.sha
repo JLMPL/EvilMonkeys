@@ -1,0 +1,78 @@
+#shader vertex
+#version 130
+
+in vec2 vertexPos;
+in vec2 vertexCoord;
+
+out vec2 fragmentCoord;
+
+void main()
+{
+    gl_Position = vec4(vertexPos, 0, 1);
+    fragmentCoord = vertexCoord;
+}
+
+#shader fragment
+#version 130
+
+in vec2 fragmentCoord;
+
+out float outColor;
+
+uniform sampler2D uDepth;
+uniform sampler2D uNormals;
+uniform sampler2D uPattern;
+
+uniform mat4 proj;
+uniform mat4 invProj;
+
+const int NumSamples = 16;
+uniform vec3 kernel[NumSamples];
+
+vec3 viewPosFromDepth(float depth)
+{
+    float z = depth * 2.0 - 1.0;
+
+    vec4 clipSpacePosition = vec4(fragmentCoord * 2.0 - 1.0, z, 1);
+    vec4 viewSpacePosition = invProj * clipSpacePosition;
+
+    viewSpacePosition /= viewSpacePosition.w;
+
+    return viewSpacePosition.xyz;
+}
+
+void main()
+{
+    vec3 origin = viewPosFromDepth(texture(uDepth, fragmentCoord).r);
+
+    vec3 normal = texture(uNormals, fragmentCoord).rgb;
+    normal = normal * 2 - vec3(1);
+
+    vec3 rvec = vec3(texture(uPattern, fragmentCoord * vec2(800/4, 600/4)).xy * 2 - vec2(1), 0);
+    rvec = normalize(rvec);
+
+    vec3 tangent = normalize(rvec - normal * dot(rvec, normal));
+    vec3 bitangent = cross(normal, tangent);
+    mat3 tbn = mat3(tangent, bitangent, normal);
+
+    float ao = 0;
+    for (int i = 0; i < NumSamples; i++)
+    {
+        vec3 samplePos = origin + (tbn * kernel[i]);
+
+        vec4 offset = vec4(samplePos, 1);
+        offset = proj * offset;
+        offset.xyz /= offset.w;
+        offset.xy = offset.xy * 0.5 + vec2(0.5);
+
+        float linearDepth = viewPosFromDepth(texture(uDepth, offset.xy).r).z;
+
+        if (abs(samplePos.z - linearDepth) < 0.5)
+            if (samplePos.z < linearDepth)
+                ao += 1.f;
+    }
+
+    ao = 1.f - (ao / float(NumSamples));
+
+    outColor = ao*ao;
+}

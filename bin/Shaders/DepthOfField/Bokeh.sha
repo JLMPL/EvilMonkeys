@@ -1,0 +1,52 @@
+#shader vertex
+#version 130
+
+in vec2 vertexPos;
+in vec2 vertexCoord;
+
+out vec2 fragmentCoord;
+
+void main()
+{
+    gl_Position = vec4(vertexPos, 0, 1);
+    fragmentCoord = vertexCoord;
+}
+
+#shader fragment
+#version 130
+
+in vec2 fragmentCoord;
+
+out vec4 outColor;
+
+uniform sampler2D image;
+uniform float width;
+uniform float height;
+
+float ratiox = 1.f/ width;
+float ratioy = 1.f/ height;
+
+void main()
+{
+    vec4 accColor = vec4(0,0,0,1);
+    float weight = 0.f;
+
+    int radius = int(6);
+    for (int x = radius * -1; x < radius; x++)
+    {
+        for (int y = radius * -1; y < radius; y++)
+        {
+            vec2 sampleCoord = fragmentCoord + vec2(x * ratiox, y * ratioy);
+
+            float factor = (distance(fragmentCoord, sampleCoord) < float(radius) * ratiox) ? 1.f : 0.f;
+
+            vec4 sampel = texture(image, sampleCoord);
+            float w = length(sampel.rgb) + 0.1f;
+            weight += w * factor;
+            accColor += sampel * w * factor;
+        }
+    }
+
+    outColor = accColor / weight;
+}
+

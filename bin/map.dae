@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<COLLADA xmlns="http://www.collada.org/2005/11/COLLADASchema" version="1.4.1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <asset>
+    <contributor>
+      <author>Blender User</author>
+      <authoring_tool>Blender 2.79.0 commit date:2017-09-11, commit time:10:43, hash:5bd8ac9abfa</authoring_tool>
+    </contributor>
+    <created>2018-02-25T00:45:58</created>
+    <modified>2018-02-25T00:45:58</modified>
+    <unit name="meter" meter="1"/>
+    <up_axis>Z_UP</up_axis>
+  </asset>
+  <library_images/>
+  <library_effects/>
+  <library_visual_scenes>
+    <visual_scene id="Scene" name="Scene">
+      <node id="guy_006" name="guy_006" type="NODE">
+        <matrix sid="transform">0.001786123 -0.0134767 0.6180408 0.2905359 0.5969664 0.1605835 0.001776387 4.335424 -0.1605834 0.596817 0.01347798 -16.65604 0 0 0 1</matrix>
+      </node>
+      <node id="guy_000" name="guy_000" type="NODE">
+        <matrix sid="transform">0.3125977 2.21381e-8 0.5064603 -24.44753 0.5064603 -1.36641e-8 -0.3125977 73.41015 0 0.5951633 -2.60154e-8 -2.434107 0 0 0 1</matrix>
+      </node>
+      <node id="guy_001" name="guy_001" type="NODE">
+        <matrix sid="transform">0.3423207 -0.1078304 -0.4747721 -25.27097 -0.4850827 -0.02594727 -0.3438617 72.7188 0.0416015 0.5847381 -0.1028103 -2.340681 0 0 0 1</matrix>
+      </node>
+      <node id="guy_002" name="guy_002" type="NODE">
+        <matrix sid="transform">0.5177011 0.1283477 -0.2640678 -23.48724 -0.2757873 0.02893061 -0.5266154 73.99097 -0.1007291 0.5804388 0.08463909 -2.424454 0 0 0 1</matrix>
+      </node>
+      <node id="guy_003" name="guy_003" type="NODE">
+        <matrix sid="transform">0.3301833 -0.2028878 0.4517023 -3.126439 0.4867809 0.03345048 -0.3408003 72.06708 0.09078942 0.5585132 0.1844984 -1.272976 0 0 0 1</matrix>
+      </node>
+      <node id="guy_004" name="guy_004" type="NODE">
+        <matrix sid="transform">0.4182931 -1.85065e-8 -0.4233796 -2.372177 -0.4233796 -1.82842e-8 -0.4182931 71.12849 0 0.5951633 -2.60154e-8 -0.9976537 0 0 0 1</matrix>
+      </node>
+      <node id="guy_005" name="guy_005" type="NODE">
+        <matrix sid="transform">0.5712181 0.1654781 -0.02337231 -1.610029 -0.01460166 -0.03349908 -0.5940404 70.25387 -0.1664814 0.5707138 -0.02809149 -0.7137372 0 0 0 1</matrix>
+      </node>
+      <node id="guy_007" name="guy_007" type="NODE">
+        <matrix sid="transform">0.3729858 -0.1223736 0.6427494 -1.593225 0.6271527 0.2777506 -0.3110539 3.902401 -0.1864981 0.6892749 0.2394559 -17.10572 0 0 0 1</matrix>
+      </node>
+      <node id="guy_008" name="guy_008" type="NODE">
+        <matrix sid="transform">-0.1412936 -0.246494 0.5913619 -2.28941 0.6176696 0.1084214 0.1927719 3.591527 -0.1701538 0.5982623 0.2087154 -17.63187 0 0 0 1</matrix>
+      </node>
+    </visual_scene>
+  </library_visual_scenes>
+  <scene>
+    <instance_visual_scene url="#Scene"/>
+  </scene>
+</COLLADA>

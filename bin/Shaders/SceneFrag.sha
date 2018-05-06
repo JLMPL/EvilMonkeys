@@ -1,0 +1,23 @@
+
+vec3 correct(vec3 color)
+{
+    float gamma = 2.2;
+    vec3 mapped = color / (color + vec3(1.0));
+    return pow(mapped, vec3(1.0/gamma));
+}
+
+void main()
+{
+    vec3 light = normalize(vec3(1,1,1));
+
+    vec3 ambient = vec3(0.5);
+
+    vec3 normal = fragToTan * vec3(0,0,1);
+    vec3 diffuse = vec3(max(dot(normal, light), 0)) * vec3(2);
+
+    vec3 color = ambient + diffuse;
+
+    color *= vec3(1,1,1);
+
+    outColor = vec4(correct(color), 1);
+}

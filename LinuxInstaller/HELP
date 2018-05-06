@@ -1,0 +1,16 @@
+
+Prerequisites
+
+1. Make sure both scripts have permissions to be executed
+2. Make sure your package manager has permissions to install third-party packages
+3. Make sure to run scripts using sudo
+4. Installer script is expecting apt to be available. If it's not an option
+you can install the .deb packages yourself or modify the script accordingly.
+
+Installation
+
+1. Run Installer.sh It will take care of itself and
+install the game to /usr/local/bin/Tower
+
+you can go there yourself or use Runner.sh
+to run the game

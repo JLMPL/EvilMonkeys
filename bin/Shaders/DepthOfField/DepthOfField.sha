@@ -1,0 +1,47 @@
+#shader vertex
+#version 130
+
+in vec2 vertexPos;
+in vec2 vertexCoord;
+
+out vec2 fragmentCoord;
+
+void main()
+{
+    gl_Position = vec4(vertexPos, 0, 1);
+    fragmentCoord = vertexCoord;
+}
+
+#shader fragment
+#version 130
+
+in vec2 fragmentCoord;
+
+out vec4 outColor;
+
+uniform sampler2D image;
+uniform sampler2D blurred;
+uniform sampler2D depth;
+
+void main()
+{
+    vec4 texColor = texture(image, fragmentCoord);
+    vec4 blurColor = texture(blurred, fragmentCoord);
+
+    float near = 0.1f;
+    float far = 2000.f;
+    float dep = texture(depth, fragmentCoord).r;
+    float fucktor = 2.0 * near * far / (far + near - (2.0 * dep - 1.0) * (far - near));
+
+    fucktor /= 2000.f; // 0 - 1
+
+    fucktor *= 60.f;
+
+    fucktor -= 0.2;
+
+    fucktor = clamp(fucktor, 0.f, 1.f);
+
+    outColor = mix(texColor, blurColor, fucktor);
+    // outColor = vec4(fucktor);
+}
+

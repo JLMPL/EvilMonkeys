@@ -1,0 +1,20 @@
+#shader vertex
+#version 130
+
+in vec2 vertexPos;
+
+void main()
+{
+    gl_Position = vec4(vertexPos, 0.99999, 1);
+}
+
+#shader fragment
+#version 130
+
+out float outColor;
+
+void main()
+{
+    outColor = gl_FragCoord.z;
+}
+

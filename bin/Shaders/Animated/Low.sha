@@ -1,0 +1,66 @@
+#shader vertex
+#version 130
+
+in vec3 vertexPos;
+in vec3 vertexNormal;
+in vec4 vertexColor;
+in vec2 vertexCoord;
+in ivec4 boneIndices;
+in vec4 weights;
+in vec3 vertexTangent;
+in vec3 vertexBiTangent;
+
+out vec4 fragmentColor;
+out vec2 fragmentCoord;
+
+uniform mat4 projection;
+uniform mat4 view;
+uniform mat4 model;
+
+uniform vec3 sunDirection;
+uniform vec3 sunColor;
+uniform vec3 ambientColor;
+
+const int NUM_BONES = 64;
+
+uniform mat4 bones[NUM_BONES];
+
+uniform vec4 clipPlane;
+
+void main()
+{
+    mat4 boneTransform = bones[boneIndices[0]] * weights[0];
+    boneTransform += bones[boneIndices[1]] * weights[1];
+    boneTransform += bones[boneIndices[2]] * weights[2];
+    boneTransform += bones[boneIndices[3]] * weights[3];
+
+    mat4 bomo = model * boneTransform;
+    vec4 sumop = bomo * vec4(vertexPos, 1);
+
+    gl_ClipDistance[0] = dot(sumop, clipPlane);
+
+    gl_Position = projection * view * sumop;
+
+    vec3 light = sunColor * dot(mat3(bomo) * vertexNormal, -sunDirection);
+    light = max(ambientColor, light);
+
+    fragmentColor = vertexColor * vec4(light, 1.f);
+    fragmentCoord = vertexCoord;
+}
+
+#shader fragment
+#version 130
+
+in vec4 fragmentColor;
+in vec2 fragmentCoord;
+
+out vec4 theColor;
+
+uniform sampler2D image;
+
+void main()
+{
+    vec4 texColor = texture(image, fragmentCoord);
+
+    theColor = texColor * fragmentColor;
+}
