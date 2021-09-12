@@ -1,5 +1,4 @@
-# TOWER
-Simple 3D Game Idea (not called Tower anymore)
+# Evil monkeys
 
 # Requirements (predicted)
 CPU: 2.5GHz  
